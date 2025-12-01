@@ -33,6 +33,8 @@ type Build struct {
 }
 
 // Run is the main function for 'build' CLI command.
+//
+//nolint:gocognit,cyclop
 func (i *Build) Run(ctx context.Context) (err error) {
 	// Download Remote source
 	if i.remoteSource != "" {
@@ -68,6 +70,16 @@ func (i *Build) Run(ctx context.Context) (err error) {
 	i.options.Templater = i.yml.templater
 
 	err = newPlan.Build(ctx, i.options)
+	if err != nil {
+		return err
+	}
+
+	// Export actual helmwave tags to template and script environment
+	tags := i.options.Tags
+	if len(tags) == 0 {
+		tags = newPlan.Tags()
+	}
+	err = os.Setenv("HELMWAVE_TAGS", strings.Join(tags, ","))
 	if err != nil {
 		return err
 	}

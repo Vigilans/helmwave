@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/helmwave/helmwave/pkg/release/dependency"
 
@@ -147,6 +148,19 @@ func (p *Plan) Graph() *dependency.Graph[uniqname.UniqName, release.Config] {
 	}
 
 	return graph
+}
+
+func (p *Plan) Tags() []string {
+	tags := []string{}
+
+	for _, rel := range p.body.Releases {
+		tags = append(tags, rel.Tags()...)
+	}
+
+	slices.Sort(tags)
+	tags = slices.Compact(tags)
+
+	return tags
 }
 
 func (p *planBody) generateDependencyGraph() (*dependency.Graph[uniqname.UniqName, release.Config], error) {
