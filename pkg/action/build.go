@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-getter"
 	"github.com/helmwave/helmwave/pkg/cache"
+	"github.com/helmwave/helmwave/pkg/clictx"
 	"github.com/helmwave/helmwave/pkg/helper"
 	"github.com/helmwave/helmwave/pkg/plan"
 	log "github.com/sirupsen/logrus"
@@ -36,6 +37,11 @@ type Build struct {
 //
 //nolint:gocognit,cyclop
 func (i *Build) Run(ctx context.Context) (err error) {
+	cliCtx := clictx.GetCLIFromContext(ctx)
+	if cliCtx == nil {
+		return fmt.Errorf("failed to get CLI context")
+	}
+
 	// Download Remote source
 	if i.remoteSource != "" {
 		wd, err := os.Getwd()
@@ -67,7 +73,9 @@ func (i *Build) Run(ctx context.Context) (err error) {
 
 	i.options.Tags = i.normalizeTags()
 	i.options.Yml = i.yml.file
-	i.options.Templater = i.yml.templater
+	if i.options.Templater == "" {
+		i.options.Templater = cliCtx.String("templater")
+	}
 
 	err = newPlan.Build(ctx, i.options)
 	if err != nil {
@@ -133,6 +141,8 @@ func (i *Build) flags() []cli.Flag {
 		flagGraphWidth(&i.options.GraphWidth),
 		flagSkipUnchanged(&i.skipUnchanged),
 		flagDiffMode(&i.diffMode),
+		flagYmlTemplateEngine(&i.yml.templater),
+		flagBuildTemplateEngine(&i.options.Templater),
 
 		&cli.BoolFlag{
 			Name:        "yml",
