@@ -2,6 +2,7 @@ package plan
 
 import (
 	"fmt"
+	"path/filepath"
 	"sync"
 
 	gotemplate "text/template"
@@ -10,7 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//nolint:gocognit
+//nolint:gocognit,funlen
 func (p *Plan) templateFuncs(mu *sync.Mutex) gotemplate.FuncMap {
 	funcMap := gotemplate.FuncMap{}
 
@@ -71,6 +72,7 @@ func (p *Plan) templateFuncs(mu *sync.Mutex) gotemplate.FuncMap {
 						return nil, fmt.Errorf("failed to unmarshal value: %w", err)
 					}
 					releaseValues[filename] = value
+					releaseValues[filepath.Base(filename)] = value
 				}
 				values[uniq.String()] = releaseValues
 			}
