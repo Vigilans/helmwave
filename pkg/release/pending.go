@@ -2,6 +2,7 @@ package release
 
 import (
 	"context"
+	"strings"
 
 	"github.com/invopop/jsonschema"
 )
@@ -27,6 +28,10 @@ func (PendingStrategy) JSONSchema() *jsonschema.Schema {
 	}
 }
 
+// Helm outputs error into fmt.Errorf which makes errors.Is unusable.
+// So we have to find this substring in error string.
+const errNoVersionToRollback = "release has no 0 version"
+
 func (rel *config) isPending() (bool, error) {
 	status, err := rel.Status()
 	if err != nil {
@@ -39,7 +44,14 @@ func (rel *config) isPending() (bool, error) {
 func (rel *config) fixPending(ctx context.Context) error {
 	switch rel.PendingReleaseStrategy {
 	case PendingStrategyRollback:
-		return rel.Rollback(ctx, 0)
+		err := rel.Rollback(ctx, 0)
+
+		// If no version to rollback, uninstall the release
+		if strings.Contains(err.Error(), errNoVersionToRollback) {
+			_, err = rel.Uninstall(ctx)
+		}
+
+		return err
 	case PendingStrategyUninstall:
 		_, err := rel.Uninstall(ctx)
 
