@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	helper.Dotenv()
+	helper.Dotenv("")
 
 	c := cli.NewApp()
 	c.Usage = "just generates manifests"

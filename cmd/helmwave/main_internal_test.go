@@ -74,3 +74,9 @@ func (ts *CliTestSuite) TestRecoverPanic() {
 		panic(err)
 	})
 }
+
+func (ts *CliTestSuite) TestEnvFileArg() {
+	ts.Require().Equal("./prod.env", envFileArg([]string{"helmwave", "--env-file=./prod.env", "build"}))
+	ts.Require().Equal("./prod.env", envFileArg([]string{"helmwave", "--env-file", "./prod.env", "build"}))
+	ts.Require().Equal("", envFileArg([]string{"helmwave", "build"}))
+}

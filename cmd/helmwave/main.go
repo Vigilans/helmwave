@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/helmwave/helmwave/pkg/helper"
@@ -18,7 +19,7 @@ import (
 )
 
 func main() {
-	helper.Dotenv()
+	helper.Dotenv(envFileArg(os.Args))
 
 	c := CreateApp()
 
@@ -27,6 +28,21 @@ func main() {
 	if err := c.Run(os.Args); err != nil {
 		log.Fatal(err) //nolint:gocritic // we try to recover panics, not regular command errors
 	}
+}
+
+func envFileArg(args []string) string {
+	for i, a := range args {
+		switch {
+		case (a == "--env-file" || a == "-env-file") && i+1 < len(args):
+			return args[i+1]
+		case strings.HasPrefix(a, "--env-file="):
+			return strings.TrimPrefix(a, "--env-file=")
+		case strings.HasPrefix(a, "-env-file="):
+			return strings.TrimPrefix(a, "-env-file=")
+		}
+	}
+
+	return os.Getenv(action.ROOT_PREFIX + "ENV_FILE")
 }
 
 func recoverPanic() {

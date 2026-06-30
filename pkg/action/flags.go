@@ -34,6 +34,11 @@ func GlobalFlags() (r []cli.Flag) {
 			EnvVars: EnvVars("PARALLEL_LIMIT"),
 			Value:   0,
 		},
+		&cli.PathFlag{
+			Name:    "env-file",
+			Usage:   "path to dotenv file",
+			EnvVars: EnvVars("ENV_FILE"),
+		},
 	}
 
 	r = append(r, cache.Default.Flags()...)
